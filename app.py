@@ -1,4 +1,4 @@
-# app.py — AirFly Insights (with Kaggle API auto-download)
+# app.py — AirFly Insights (with Kaggle API auto-download).
 import streamlit as st
 import pandas as pd
 import os, subprocess
