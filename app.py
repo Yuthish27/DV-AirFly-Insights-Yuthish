@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import os, subprocess
 import plotly.express as px
+import zipfile
 
 # Set Kaggle credentials from Streamlit secrets
 os.environ["KAGGLE_USERNAME"] = st.secrets["KAGGLE_USERNAME"]
@@ -22,7 +23,11 @@ csv_path = os.path.join(DATA_DIR, "airline_delay_causes.csv")
 if not os.path.exists(csv_path):
     st.info("📥 Downloading dataset from Kaggle (first time may take ~1 min)...")
     subprocess.run(["kaggle", "datasets", "download", "-d", "giovamata/airlinedelaycauses", "-p", DATA_DIR])
-    subprocess.run(["unzip", "-o", f"{DATA_DIR}/airlinedelaycauses.zip", "-d", DATA_DIR])
+ # Unzip with Python (not system unzip)
+    zip_path = os.path.join(DATA_DIR, "airlinedelaycauses.zip")
+    if os.path.exists(zip_path):
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(DATA_DIR)
 
 # -----------------------
 # 2. Load & preprocess data
