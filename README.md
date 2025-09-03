@@ -132,3 +132,9 @@ The insights aim to support stakeholders like **airline operators, airports, and
 5. Make sure to update the repo for every milestone 
 
 ---
+
+## 🌐 Live Dashboard
+You can interact with the deployed **Streamlit Dashboard** here:  
+👉 [AirFly Insights Dashboard](https://yuthish27-dv-airfly-insights-yuthish.streamlit.app)  
+
+---
