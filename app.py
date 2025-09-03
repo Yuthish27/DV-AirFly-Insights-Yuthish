@@ -62,7 +62,7 @@ def load_data(path):
             df[c] = df[c].fillna(0)
     return df
 
-df = load_data(csv_path)
+df = load_data(csv_file)
 
 # -----------------------
 # 3. Sidebar filters
