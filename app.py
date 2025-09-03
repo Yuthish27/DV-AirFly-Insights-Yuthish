@@ -4,6 +4,10 @@ import pandas as pd
 import os, subprocess
 import plotly.express as px
 
+# Set Kaggle credentials from Streamlit secrets
+os.environ["KAGGLE_USERNAME"] = st.secrets["KAGGLE_USERNAME"]
+os.environ["KAGGLE_KEY"] = st.secrets["KAGGLE_KEY"]
+
 st.set_page_config(page_title="AirFly Insights", layout="wide")
 st.title("✈️ AirFly Insights — Delay hotspots & cancellations")
 st.markdown("Story: Where delays & cancellations happen most, when, why, and quick recommendations.")
