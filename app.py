@@ -52,7 +52,7 @@ else:
 # -----------------------
 @st.cache_data
 def load_data(path):
-    df = pd.read_csv(path, low_memory=False)
+    df = pd.read_csv(path, nrows=50000)
 
     # Feature engineering
     df['Route'] = df['Origin'].astype(str) + "-" + df['Dest'].astype(str)
