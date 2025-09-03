@@ -18,16 +18,34 @@ st.markdown("Story: Where delays & cancellations happen most, when, why, and qui
 # -----------------------
 DATA_DIR = "data"
 os.makedirs(DATA_DIR, exist_ok=True)
-csv_path = os.path.join(DATA_DIR, "airline_delay_causes.csv")
 
-if not os.path.exists(csv_path):
-    st.info("📥 Downloading dataset from Kaggle (first time may take ~1 min)...")
-    subprocess.run(["kaggle", "datasets", "download", "-d", "giovamata/airlinedelaycauses", "-p", DATA_DIR])
- # Unzip with Python (not system unzip)
-    zip_path = os.path.join(DATA_DIR, "airlinedelaycauses.zip")
-    if os.path.exists(zip_path):
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(DATA_DIR)
+# Download dataset
+zip_path = os.path.join(DATA_DIR, "airlinedelaycauses.zip")
+
+if not os.path.exists(zip_path):
+    st.write("📥 Downloading dataset from Kaggle (first time may take ~1 min)...")
+    subprocess.run([
+        "kaggle", "datasets", "download",
+        "-d", "giovamata/airlinedelaycauses",
+        "-p", DATA_DIR
+    ])
+
+# Extract dataset if not already extracted
+with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+    zip_ref.extractall(DATA_DIR)
+
+# Find the CSV file dynamically
+csv_file = None
+for f in os.listdir(DATA_DIR):
+    if f.endswith(".csv"):
+        csv_file = os.path.join(DATA_DIR, f)
+        break
+
+if csv_file is None:
+    st.error("❌ CSV file not found after extraction!")
+else:
+    st.success(f"✅ Found dataset: {csv_file}")
+    df = pd.read_csv(csv_file, low_memory=False)
 
 # -----------------------
 # 2. Load & preprocess data
