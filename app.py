@@ -1,9 +1,10 @@
 # app.py — AirFly Insights (with Kaggle API auto-download).
 import streamlit as st
 import pandas as pd
-import os, subprocess
+import os
 import plotly.express as px
 import zipfile
+from kaggle.api.kaggle_api_extended import KaggleApi
 
 # Set Kaggle credentials from Streamlit secrets
 os.environ["KAGGLE_USERNAME"] = st.secrets["KAGGLE_USERNAME"]
@@ -22,13 +23,14 @@ os.makedirs(DATA_DIR, exist_ok=True)
 # Download dataset
 zip_path = os.path.join(DATA_DIR, "airlinedelaycauses.zip")
 
-if not os.path.exists(zip_path):
-    st.write("📥 Downloading dataset from Kaggle (first time may take ~1 min)...")
-    subprocess.run([
-        "kaggle", "datasets", "download",
-        "-d", "giovamata/airlinedelaycauses",
-        "-p", DATA_DIR
-    ])
+from kaggle.api.kaggle_api_extended import KaggleApi
+
+if not os.path.exists(csv_path):
+    st.info("📥 Downloading dataset from Kaggle (first time may take ~1 min)...")
+
+    api = KaggleApi()
+    api.authenticate()
+    api.dataset_download_files("giovamata/airlinedelaycauses", path=DATA_DIR, unzip=True)
 
 # Extract dataset if not already extracted
 with zipfile.ZipFile(zip_path, 'r') as zip_ref:
