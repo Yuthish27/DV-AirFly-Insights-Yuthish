@@ -28,6 +28,10 @@ from kaggle.api.kaggle_api_extended import KaggleApi
 if not os.path.exists(csv_path):
     st.info("📥 Downloading dataset from Kaggle (first time may take ~1 min)...")
 
+    # Load Kaggle credentials from Streamlit secrets
+    os.environ["KAGGLE_USERNAME"] = st.secrets["KAGGLE_USERNAME"]
+    os.environ["KAGGLE_KEY"] = st.secrets["KAGGLE_KEY"]
+    
     api = KaggleApi()
     api.authenticate()
     api.dataset_download_files("giovamata/airlinedelaycauses", path=DATA_DIR, unzip=True)
