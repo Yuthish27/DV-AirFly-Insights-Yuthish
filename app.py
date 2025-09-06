@@ -6,10 +6,6 @@ import streamlit as st
 import plotly.express as px 
 
 
-# Set page
-st.set_page_config(page_title="AirFly Insights", layout="wide")
-st.title("✈️ AirFly Insights — Delay hotspots & cancellations")
-st.markdown("Story: Where delays & cancellations happen most, when, why, and quick recommendations.")
 
 
 
