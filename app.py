@@ -3,7 +3,7 @@ import subprocess
 import zipfile
 import pandas as pd
 import streamlit as st
-import plotly.express as px 
+import plotly.express as ng 
 
 
 
@@ -89,19 +89,19 @@ c3.metric("Cancellation rate", f"{round(df['Cancelled'].mean()*100,2)}%")
 # Plot 1: Top routes
 st.subheader("Top routes (by flights)")
 rt = df.groupby("Route").agg(flights=('Route','count'), avg_arr_delay=('ArrDelay','mean')).reset_index().nlargest(15, "flights")
-fig = px.bar(rt, x="flights", y="Route", orientation="h", labels={"flights":"Flights"})
+fig = ng.bar(rt, x="flights", y="Route", orientation="h", labels={"flights":"Flights"})
 st.plotly_chart(fig, use_container_width=True)
 
 # Plot 2: Busiest origin airports
 st.subheader("Busiest origin airports")
 ap = df.groupby("Origin").agg(departures=('Origin','count'), avg_arr_delay=('ArrDelay','mean')).reset_index().nlargest(15, "departures")
-fig2 = px.bar(ap, x="departures", y="Origin", orientation="h", labels={"Origin":"Airport","departures":"Departures"})
+fig2 = ng.bar(ap, x="departures", y="Origin", orientation="h", labels={"Origin":"Airport","departures":"Departures"})
 st.plotly_chart(fig2, use_container_width=True)
 
 # Plot 3: Monthly average arrival delay
 st.subheader("Monthly average arrival delay")
 m = df.groupby("Month").agg(avg_arr_delay=('ArrDelay','mean'), cancellations=('Cancelled','sum')).reset_index()
-fig3 = px.line(m, x="Month", y="avg_arr_delay", markers=True)
+fig3 = ng.line(m, x="Month", y="avg_arr_delay", markers=True)
 st.plotly_chart(fig3, use_container_width=True)
 
 # Plot 4: Cancellation reasons
@@ -110,14 +110,14 @@ cmap = {'A':'Carrier','B':'Weather','C':'NAS','D':'Security'}
 df['CancellationReason'] = df['CancellationCode'].map(cmap)
 cancel_counts = df[df['Cancelled']==1]['CancellationReason'].value_counts().reset_index()
 cancel_counts.columns = ["Reason","Count"]
-fig4 = px.bar(cancel_counts, x="Count", y="Reason", orientation="h")
+fig4 = ng.bar(cancel_counts, x="Count", y="Reason", orientation="h")
 st.plotly_chart(fig4, use_container_width=True)
 
 # Plot 5: Delay causes by carrier
 st.subheader("Average delay (by cause) — Top carriers")
 cd = df.groupby("UniqueCarrier")[['CarrierDelay','WeatherDelay','NASDelay','SecurityDelay','LateAircraftDelay']].mean().reset_index()
 topc = cd.sort_values("CarrierDelay", ascending=False).head(8).melt(id_vars="UniqueCarrier", var_name="Cause", value_name="Minutes")
-fig5 = px.bar(topc, x="UniqueCarrier", y="Minutes", color="Cause", barmode="group")
+fig5 = ng.bar(topc, x="UniqueCarrier", y="Minutes", color="Cause", barmode="group")
 st.plotly_chart(fig5, use_container_width=True)
 
 # -----------------------
