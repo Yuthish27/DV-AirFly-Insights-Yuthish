@@ -3,7 +3,6 @@ import streamlit as st
 import pandas as pd
 import os
 import plotly.express as px
-import zipfile
 from kaggle.api.kaggle_api_extended import KaggleApi
 
 # Set Kaggle credentials from Streamlit secrets
@@ -20,33 +19,30 @@ st.markdown("Story: Where delays & cancellations happen most, when, why, and qui
 DATA_DIR = "data"
 os.makedirs(DATA_DIR, exist_ok=True)
 
-# Download dataset
-zip_path = os.path.join(DATA_DIR, "airlinedelaycauses.zip")
-
-from kaggle.api.kaggle_api_extended import KaggleApi
-
-if not os.path.exists(zip_path):
-    st.info("📥 Downloading dataset from Kaggle (first time may take ~1 min)...")
-
-    # Load Kaggle credentials from Streamlit secrets
-    os.environ["KAGGLE_USERNAME"] = st.secrets["KAGGLE_USERNAME"]
-    os.environ["KAGGLE_KEY"] = st.secrets["KAGGLE_KEY"]
-    
-    api = KaggleApi()
-    api.authenticate()
-    api.dataset_download_files("giovamata/airlinedelaycauses", path=DATA_DIR, unzip=True)
-
-
-
-# Find the CSV file dynamically
+# Check if CSV already exists
 csv_file = None
 for f in os.listdir(DATA_DIR):
     if f.endswith(".csv"):
         csv_file = os.path.join(DATA_DIR, f)
         break
 
+# If no CSV, download from Kaggle
 if csv_file is None:
-    st.error("❌ CSV file not found after extraction!")
+    st.info("📥 Downloading dataset from Kaggle (first time may take ~1 min)...")
+    api = KaggleApi()
+    api.authenticate()
+    api.dataset_download_files("giovamata/airlinedelaycauses", path=DATA_DIR, unzip=True)
+
+    # find CSV after download
+    for f in os.listdir(DATA_DIR):
+        if f.endswith(".csv"):
+            csv_file = os.path.join(DATA_DIR, f)
+            break
+
+# Validate dataset
+if csv_file is None:
+    st.error("❌ CSV file not found after Kaggle download!")
+    st.stop()
 else:
     st.success(f"✅ Found dataset: {csv_file}")
     df = pd.read_csv(csv_file, low_memory=False)
