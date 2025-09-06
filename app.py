@@ -1,54 +1,52 @@
-# app.py — AirFly Insights (fixed: no zip issue)
-import streamlit as st
-import pandas as pd
 import os
-import plotly.express as px
-from kaggle.api.kaggle_api_extended import KaggleApi
+import subprocess
+import zipfile
+import pandas as pd
+import streamlit as st
 
-# Set page
-st.set_page_config(page_title="AirFly Insights", layout="wide")
-st.title("✈️ AirFly Insights — Delay hotspots & cancellations")
-st.markdown("Story: Where delays & cancellations happen most, when, why, and quick recommendations.")
-
-# -----------------------
-# 1. Kaggle Dataset Setup
-# -----------------------
-DATA_DIR = "data"
-os.makedirs(DATA_DIR, exist_ok=True)
-
-# Load Kaggle credentials from Streamlit secrets
+# Kaggle creds
 os.environ["KAGGLE_USERNAME"] = st.secrets["KAGGLE_USERNAME"]
 os.environ["KAGGLE_KEY"] = st.secrets["KAGGLE_KEY"]
 
-csv_file = os.path.join(DATA_DIR, "airline_delay_causes.csv")
+# Data directory
+DATA_DIR = "data"
+os.makedirs(DATA_DIR, exist_ok=True)
 
-# Download dataset if not found
-if not os.path.exists(csv_file):
-    st.info("📥 Downloading dataset from Kaggle (first time may take ~1 min)...")
-    api = KaggleApi()
-    api.authenticate()
-    api.dataset_download_files("giovamata/airlinedelaycauses", path=DATA_DIR, unzip=True)
+# Download dataset
+zip_path = os.path.join(DATA_DIR, "airlinedelaycauses.zip")
 
-    # Find CSV dynamically
-    for f in os.listdir(DATA_DIR):
-        if f.endswith(".csv"):
-            os.rename(os.path.join(DATA_DIR, f), csv_file)
-            break
+if not os.path.exists(zip_path):
+    st.write("📥 Downloading dataset from Kaggle (first time may take ~1 min)...")
+    subprocess.run([
+        "kaggle", "datasets", "download",
+        "-d", "giovamata/airlinedelaycauses",
+        "-p", DATA_DIR
+    ])
 
-# Confirm dataset
-if not os.path.exists(csv_file):
-    st.error("❌ Could not find CSV dataset after download!")
-    st.stop()
+# Extract dataset if not already extracted
+with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+    zip_ref.extractall(DATA_DIR)
+
+# Find the CSV file dynamically
+csv_file = None
+for f in os.listdir(DATA_DIR):
+    if f.endswith(".csv"):
+        csv_file = os.path.join(DATA_DIR, f)
+        break
+
+if csv_file is None:
+    st.error("❌ CSV file not found after extraction!")
 else:
-    st.success(f"✅ Using dataset: {csv_file}")
+    st.success(f"✅ Found dataset: {csv_file}")
     df = pd.read_csv(csv_file, low_memory=False)
+
 
 # -----------------------
 # 2. Load & preprocess data
 # -----------------------
 @st.cache_data
 def load_data(path):
-    df = pd.read_csv(path, nrows=50000)
+    df = pd.read_csv(path, low_memory=False)
 
     # Feature engineering
     df['Route'] = df['Origin'].astype(str) + "-" + df['Dest'].astype(str)
@@ -83,21 +81,25 @@ c3.metric("Cancellation rate", f"{round(df['Cancelled'].mean()*100,2)}%")
 # 5. Plots
 # -----------------------
 
+# Plot 1: Top routes
 st.subheader("Top routes (by flights)")
 rt = df.groupby("Route").agg(flights=('Route','count'), avg_arr_delay=('ArrDelay','mean')).reset_index().nlargest(15, "flights")
 fig = px.bar(rt, x="flights", y="Route", orientation="h", labels={"flights":"Flights"})
 st.plotly_chart(fig, use_container_width=True)
 
+# Plot 2: Busiest origin airports
 st.subheader("Busiest origin airports")
 ap = df.groupby("Origin").agg(departures=('Origin','count'), avg_arr_delay=('ArrDelay','mean')).reset_index().nlargest(15, "departures")
 fig2 = px.bar(ap, x="departures", y="Origin", orientation="h", labels={"Origin":"Airport","departures":"Departures"})
 st.plotly_chart(fig2, use_container_width=True)
 
+# Plot 3: Monthly average arrival delay
 st.subheader("Monthly average arrival delay")
 m = df.groupby("Month").agg(avg_arr_delay=('ArrDelay','mean'), cancellations=('Cancelled','sum')).reset_index()
 fig3 = px.line(m, x="Month", y="avg_arr_delay", markers=True)
 st.plotly_chart(fig3, use_container_width=True)
 
+# Plot 4: Cancellation reasons
 st.subheader("Cancellation reasons")
 cmap = {'A':'Carrier','B':'Weather','C':'NAS','D':'Security'}
 df['CancellationReason'] = df['CancellationCode'].map(cmap)
@@ -106,6 +108,7 @@ cancel_counts.columns = ["Reason","Count"]
 fig4 = px.bar(cancel_counts, x="Count", y="Reason", orientation="h")
 st.plotly_chart(fig4, use_container_width=True)
 
+# Plot 5: Delay causes by carrier
 st.subheader("Average delay (by cause) — Top carriers")
 cd = df.groupby("UniqueCarrier")[['CarrierDelay','WeatherDelay','NASDelay','SecurityDelay','LateAircraftDelay']].mean().reset_index()
 topc = cd.sort_values("CarrierDelay", ascending=False).head(8).melt(id_vars="UniqueCarrier", var_name="Cause", value_name="Minutes")
