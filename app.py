@@ -3,6 +3,7 @@ import subprocess
 import zipfile
 import pandas as pd
 import streamlit as st
+import plotly.express as px 
 
 # Kaggle creds
 os.environ["KAGGLE_USERNAME"] = st.secrets["KAGGLE_USERNAME"]
