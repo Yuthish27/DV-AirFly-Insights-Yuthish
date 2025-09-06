@@ -25,7 +25,7 @@ zip_path = os.path.join(DATA_DIR, "airlinedelaycauses.zip")
 
 from kaggle.api.kaggle_api_extended import KaggleApi
 
-if not os.path.exists(csv_path):
+if not os.path.exists(zip_path):
     st.info("📥 Downloading dataset from Kaggle (first time may take ~1 min)...")
 
     # Load Kaggle credentials from Streamlit secrets
