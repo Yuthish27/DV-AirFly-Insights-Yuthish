@@ -36,9 +36,7 @@ if not os.path.exists(zip_path):
     api.authenticate()
     api.dataset_download_files("giovamata/airlinedelaycauses", path=DATA_DIR, unzip=True)
 
-# Extract dataset if not already extracted
-with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-    zip_ref.extractall(DATA_DIR)
+
 
 # Find the CSV file dynamically
 csv_file = None
